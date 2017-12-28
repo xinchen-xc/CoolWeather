@@ -4,6 +4,15 @@
     android:layout_height="match_parent"
     android:background="?attr/colorPrimary">
 
+    <ImageView
+        android:id="@+id/bing_pic_img"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"/>
+
+    <!--scaleType是控制图片如何resized/moved来匹对ImageView的size-->
+    <!--FrameLayout 默认情况下会将控件都放置在左上角，因此 ScrollView 会完全覆盖住ImageView ，从而 ImageView 也就成为背景图片了-->
+
     <ScrollView
         android:id="@+id/weather_layout"
         android:layout_width="match_parent"
@@ -14,8 +23,9 @@
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
+            android:layout_height="wrap_content"
+            android:fitsSystemWindows="true">
+            <!--增加 android:fitsSystemWindows 属性，设置成true 就表示会为系统状态栏留出空间。-->
             <include layout="@layout/title"/>
 
             <include layout="@layout/now"/>
