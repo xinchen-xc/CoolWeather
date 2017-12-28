@@ -4,11 +4,15 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.preference.PreferenceManager;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -42,6 +46,11 @@ import okhttp3.Response;
      private TextView sportText;
      private ImageView bingPicImg;
 
+     public SwipeRefreshLayout swipeRefresh;
+
+     public DrawerLayout drawerLayout;
+     private Button navButon;
+
      @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,20 +83,49 @@ import okhttp3.Response;
          carWashText = (TextView)findViewById(R.id.car_wash_text);
          sportText = (TextView)findViewById(R.id.sport_text);
 
+
+         swipeRefresh = (SwipeRefreshLayout)findViewById(R.id.swipe_refresh);
+         swipeRefresh.setColorSchemeResources(R.color.colorPrimary);
+
+         drawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
+         navButon = (Button)findViewById(R.id.nav_button);
+
+         /**
+          * 刷新
+          * 在 onCreate ()方法中获取到了 SwipeRefreshLayout 的实例，
+          * 然后调用 setColorSchemeResources() 方法来设置下拉刷新进度条的颜色，这里使用主题中的 colorPrimary 作为进度条的颜色
+          * 接着定义了一个 weatherId 变量，用于记录城市的天气id ，
+          * 然后调用 setOnRefreshListener() 方法来设置-个下拉刷新的监昕器，
+          * 当触发了下拉刷新操作的时候，就会回调这个监昕器的 onRefresh() 方法，这里去调用 requestWeather( )方法请求天气信息。
+          *
+          * 当请求结束后，需要调用 SwipeRefreshLayout 的 setRefreshing ( )方法并传入 false ，用于表示刷新事件结束，并隐藏刷新进度条
+          */
+
          //加背景图片
          bingPicImg = (ImageView)findViewById(R.id.bing_pic_img);
 
          SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
          String weatherString = prefs.getString("weather",null);
+         final String weatherId;
          if(weatherString != null){
             //有缓存时直接解析天气数据
              Weather weather = Utility.handleWeatherResponse(weatherString);
+             weatherId = weather.basic.weatherId;
              showWeatherInfo(weather);
          }else {
-             String weatherId = getIntent().getStringExtra("weather_id");
+             //刷新加刷新时修改
+             weatherId = getIntent().getStringExtra("weather_id");
+//             String weatherId = getIntent().getStringExtra("weather_id");
              weatherLayout.setVisibility(View.INVISIBLE);
              requestWeather(weatherId);
          }
+
+         swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+             @Override
+             public void onRefresh() {
+                 requestWeather(weatherId);
+             }
+         });
 
          //加背景图片
          String bingPic = prefs.getString("bing_pic",null);
@@ -96,6 +134,20 @@ import okhttp3.Response;
          }else{
              loadBingPic();
          }
+
+         /**
+          * 入滑动菜单的逻辑处理
+          * 首先在 onCreate()方法中获取到新增的 DrawerLayout 和 Button 的实例，
+          * 然后在Button 的点击事件中调用 DrawerLayout 的 openDrawer()方法来打开滑动菜单就可以了。
+          *
+          * 处理切换城市后的逻辑的工作就必须要在 ChooseAreaFragment 中进行了
+          */
+         navButon.setOnClickListener(new View.OnClickListener() {
+             @Override
+             public void onClick(View v) {
+                 drawerLayout.openDrawer(GravityCompat.START);
+             }
+         });
      }
 
      /**
@@ -119,6 +171,7 @@ import okhttp3.Response;
                      @Override
                      public void run() {
                          Toast.makeText(WeatherActivity.this,"获取天气信息失败",Toast.LENGTH_LONG).show();
+                         swipeRefresh.setRefreshing(false);
                      }
                  });
              }
@@ -138,6 +191,7 @@ import okhttp3.Response;
                          }else{
                              Toast.makeText(WeatherActivity.this,"获取天气信息失败",Toast.LENGTH_LONG).show();
                          }
+                         swipeRefresh.setRefreshing(false);
                      }
                  });
              }

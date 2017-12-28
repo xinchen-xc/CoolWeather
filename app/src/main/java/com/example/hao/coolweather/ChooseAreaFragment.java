@@ -97,10 +97,30 @@ public class ChooseAreaFragment extends Fragment {
                  */
                 else if(currentLevel == LEVEL_COUNTY){
                     String weatherId = countyList.get(position).getWeatherId();
-                    Intent intent = new Intent(getActivity() , WeatherActivity.class);
-                    intent.putExtra("weather_id" , weatherId);
-                    startActivity(intent);
-                    getActivity().finish();
+                    if(getActivity() instanceof MainActivity){
+                        Intent intent = new Intent(getActivity() , WeatherActivity.class);
+                        intent.putExtra("weather_id" , weatherId);
+                        startActivity(intent);
+                        getActivity().finish();
+                    }
+                    /**
+                     * 处理切换城市后的逻辑
+                     *
+                     * 据 ChooseAreaFragment 的不同状态来进行不同的逻辑处理，修改ChooseAreaFragment 中的代码
+                     *
+                     * 碎片中调用 getActivity ()方法，然后配合 instanceof 关键字，就能轻松判断出该碎片是在 MainActivity 当中，还是在 WearActivity 当中
+                     *
+                     * 之前选中了某个城市后是跳转到 WeatherActivity 的
+                     * 而现在由于本来就是在 WeatherActivity 当中的，因此并不需要跳转，只是去请求新选择城市的天气信息就可以了。
+                     *
+                     * instanceof 关键字可以用来判断一个对象是否属于某个类的实例。
+                     */
+                    else if(getActivity() instanceof WeatherActivity){
+                        WeatherActivity activity = (WeatherActivity)getActivity();
+                        activity.drawerLayout.closeDrawers();
+                        activity.swipeRefresh.setRefreshing(true);
+                        activity.requestWeather(weatherId);
+                    }
                 }
 
 
