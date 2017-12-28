@@ -1,5 +1,7 @@
  package com.example.hao.coolweather;
 
+import android.app.Service;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
@@ -22,6 +24,7 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.example.hao.coolweather.gson.Forecast;
 import com.example.hao.coolweather.gson.Weather;
+import com.example.hao.coolweather.service.AutoUpdateService;
 import com.example.hao.coolweather.util.HttpUtil;
 import com.example.hao.coolweather.util.Utility;
 
@@ -49,7 +52,7 @@ import okhttp3.Response;
      public SwipeRefreshLayout swipeRefresh;
 
      public DrawerLayout drawerLayout;
-     private Button navButon;
+     private Button navButton;
 
      @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,7 +91,7 @@ import okhttp3.Response;
          swipeRefresh.setColorSchemeResources(R.color.colorPrimary);
 
          drawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
-         navButon = (Button)findViewById(R.id.nav_button);
+         navButton = (Button)findViewById(R.id.nav_button);
 
          /**
           * 刷新
@@ -142,7 +145,7 @@ import okhttp3.Response;
           *
           * 处理切换城市后的逻辑的工作就必须要在 ChooseAreaFragment 中进行了
           */
-         navButon.setOnClickListener(new View.OnClickListener() {
+         navButton.setOnClickListener(new View.OnClickListener() {
              @Override
              public void onClick(View v) {
                  drawerLayout.openDrawer(GravityCompat.START);
@@ -153,6 +156,7 @@ import okhttp3.Response;
      /**
       * 根据天气 id 请求城市天气信息
       * @param weatherId
+      *
       * 先是使用参数中传入的天气 id 和之前申请好的 APIKey 拼装出一个接口地址
       * 接着调用 HttpUtil.sendOkHttpRequest() 方法来向该地址发出请求，服务器会将相应城市的天气信息以 JSON 格式返回
       * 然后在 onResponse() 回调中先调用 Utility.handleWeatherResponse() 方法将返回的 JSON 数据转换成 Weather 对象
@@ -188,6 +192,7 @@ import okhttp3.Response;
                              editor.putString("weather",responseText);
                              editor.apply();
                              showWeatherInfo(weather);
+
                          }else{
                              Toast.makeText(WeatherActivity.this,"获取天气信息失败",Toast.LENGTH_LONG).show();
                          }
@@ -241,6 +246,12 @@ import okhttp3.Response;
          carWashText.setText(carWash);
          sportText.setText(sport) ;
          weatherLayout.setVisibility(View.VISIBLE);
+
+         /**
+          * 启动服务
+          */
+         Intent intent = new Intent(this, AutoUpdateService.class);
+         startService(intent);
      }
 
      /**
@@ -277,4 +288,6 @@ import okhttp3.Response;
              }
          });
      }
+
+
  }
