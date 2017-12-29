@@ -54,6 +54,8 @@ import okhttp3.Response;
      public DrawerLayout drawerLayout;
      private Button navButton;
 
+     String weatherId;
+
      @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -95,13 +97,14 @@ import okhttp3.Response;
 
          /**
           * 刷新
-          * 在 onCreate ()方法中获取到了 SwipeRefreshLayout 的实例，
+          *
+          * 在 onCreate()方法中获取到了 SwipeRefreshLayout 的实例，
           * 然后调用 setColorSchemeResources() 方法来设置下拉刷新进度条的颜色，这里使用主题中的 colorPrimary 作为进度条的颜色
           * 接着定义了一个 weatherId 变量，用于记录城市的天气id ，
           * 然后调用 setOnRefreshListener() 方法来设置-个下拉刷新的监昕器，
           * 当触发了下拉刷新操作的时候，就会回调这个监昕器的 onRefresh() 方法，这里去调用 requestWeather( )方法请求天气信息。
           *
-          * 当请求结束后，需要调用 SwipeRefreshLayout 的 setRefreshing ( )方法并传入 false ，用于表示刷新事件结束，并隐藏刷新进度条
+          * 当请求结束后，需要调用 SwipeRefreshLayout 的 setRefreshing()方法并传入 false ，用于表示刷新事件结束，并隐藏刷新进度条
           */
 
          //加背景图片
@@ -109,16 +112,15 @@ import okhttp3.Response;
 
          SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
          String weatherString = prefs.getString("weather",null);
-         final String weatherId;
+
          if(weatherString != null){
             //有缓存时直接解析天气数据
              Weather weather = Utility.handleWeatherResponse(weatherString);
              weatherId = weather.basic.weatherId;
              showWeatherInfo(weather);
          }else {
-             //刷新加刷新时修改
+             //刷新时修改
              weatherId = getIntent().getStringExtra("weather_id");
-//             String weatherId = getIntent().getStringExtra("weather_id");
              weatherLayout.setVisibility(View.INVISIBLE);
              requestWeather(weatherId);
          }
@@ -126,7 +128,9 @@ import okhttp3.Response;
          swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
              @Override
              public void onRefresh() {
+                 String weatherIdd = getIntent().getStringExtra("weather_id");
                  requestWeather(weatherId);
+
              }
          });
 
@@ -139,7 +143,8 @@ import okhttp3.Response;
          }
 
          /**
-          * 入滑动菜单的逻辑处理
+          * 滑动菜单的逻辑处理
+          *
           * 首先在 onCreate()方法中获取到新增的 DrawerLayout 和 Button 的实例，
           * 然后在Button 的点击事件中调用 DrawerLayout 的 openDrawer()方法来打开滑动菜单就可以了。
           *
@@ -164,7 +169,8 @@ import okhttp3.Response;
       * 然后进行判断，如果服务器返回的 status 状态是ok，就说明请求天气成功了，
       * 此时将返回的数据缓存到 SharedPreferences 当中，并调用 showWeatherInfo( )方法来进行内容显示
       */
-     public void requestWeather(final String weatherId){
+     public void requestWeather(String weatherId){
+         this.weatherId = weatherId;
          String weatherUrl = "http://guolin.tech/api/weather?cityid=" + weatherId + "&key=91521742a97d4954aa5b9bf0e9c07731";
          HttpUtil.sendOkHttpRequest(weatherUrl, new Callback(){
 
